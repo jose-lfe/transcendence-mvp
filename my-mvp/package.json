@@ -1,0 +1,19 @@
+{
+  "name": "my-mvp",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:css": "npx tailwindcss -i ./src/index.css -o ./dist/style.css --minify",
+    "watch:css": "npx tailwindcss -i ./src/index.css -o ./dist/style.css --watch",
+    "build:ts": "npx tsc",
+    "watch:ts": "npx tsc --watch",
+    "build": "npm run build:css && npm run build:ts",
+    "dev": "sh ./scripts/start-dev.sh"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.24",
+    "tailwindcss": "^3.4.6",
+    "typescript": "^5.3.3"
+  }
+}

@@ -1,0 +1,14 @@
+FROM node:18-bullseye
+WORKDIR /app
+
+# installer python3 pour le serveur statique
+RUN apt-get update && apt-get install -y python3 && rm -rf /var/lib/apt/lists/*
+
+COPY package*.json ./
+RUN npm install
+
+# copie initiale (sera surchargée par volumes en dev)
+COPY . .
+
+EXPOSE 5173
+CMD ["sh", "-c", "npm run dev"]
