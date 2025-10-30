@@ -20,6 +20,59 @@ function navigateTo(page: Page) { window.location.hash = `#${page}`; }
 function getHashPage(): Page { const h = (window.location.hash || '#home').replace('#','') as Page; if (h !== 'home' && h !== 'versus' && h !== 'tournament') return 'home'; return h; }
 
 /* ---------- Renderers ---------- */
+function renderVictory(winner: string, loser: string, score: string, leftName?: string, rightName?: string) {
+  app.innerHTML = '';
+  const html = `
+    <div class="card text-center">
+      <h2 class="text-2xl font-semibold mb-4">Victoire !</h2>
+      <p class="text-lg mb-4"><strong>${winner}</strong> a gagné contre <strong>${loser}</strong></p>
+      <p class="small mb-6">Score final — ${score}</p>
+      <div class="flex justify-center gap-4">
+        <button id="replay" class="btn border bg-white">Rejouer</button>
+        <button id="back" class="btn bg-slate-800 text-white">Retour au menu</button>
+      </div>
+    </div>
+  `;
+  const node = elFromHTML(html);
+  app.appendChild(node);
+
+  // handlers
+  (document.getElementById('replay') as HTMLButtonElement).addEventListener('click', () => {
+    // recreate canvas view and new game with same players
+    const canvasHtml = `
+      <div>
+        <button id="back-to-menu" class="small mb-3">← Retour au menu</button>
+        <canvas id="pong-canvas" width="800" height="480" style="display:block;margin:0 auto;border:1px solid #111;"></canvas>
+      </div>
+    `;
+    app.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'card';
+    wrap.innerHTML = canvasHtml;
+    app.appendChild(wrap);
+
+    const GameClassLocal = (window as any).PongGame;
+const newGame = new GameClassLocal(
+  'pong-canvas',
+  leftName || winner,
+  rightName || loser,
+  7,
+  (winnerName: string, loserName: string, finalScore: string) =>
+    renderVictory(winnerName, loserName, finalScore, leftName, rightName)
+);    // attach back button
+    document.getElementById('back-to-menu')!.addEventListener('click', () => {
+      newGame.stop();
+      navigateTo('home');
+      render(getHashPage());
+    });
+  });
+
+  (document.getElementById('back') as HTMLButtonElement).addEventListener('click', () => {
+    navigateTo('home');
+    render(getHashPage());
+  });
+}
+
 function render(page: Page) {
   app.innerHTML = '';
   const container = document.createElement('div');
@@ -105,20 +158,46 @@ function versusContent(): HTMLElement {
     while (b === a) b = samples[Math.floor(Math.random()*samples.length)];
     p1.value = a; p2.value = b;
   });
-  start.addEventListener('click', async () => {
-    const a = p1.value.trim(); const b = p2.value.trim();
-    if (!a || !b || a === b) { alert('Les pseudos doivent être différents et non vides'); return; }
-    appState.players = [a,b];
-    localStorage.setItem('mvp_players', JSON.stringify(appState.players));
-    try {
-      await fetch('/api/start-tournament', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ players: appState.players })
-      });
-    } catch(e) { console.warn('API call failed', e); }
-    alert(`Démarrage Versus: ${a} vs ${b}`);
-  });
+start.addEventListener('click', async () => {
+  const a = p1.value.trim(); const b = p2.value.trim();
+  if (!a || !b || a === b) { alert('Les pseudos doivent être différents et non vides'); return; }
+  appState.players = [a,b];
+  localStorage.setItem('mvp_players', JSON.stringify(appState.players));
+  try {
+    await fetch('/api/start-tournament', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ players: appState.players })
+    });
+  } catch(e) { console.warn('API call failed', e); }
+
+  // Replace UI by the Pong canvas
+  const canvasHtml = `
+    <div>
+      <button id="back-to-menu" class="small mb-3">← Retour au menu</button>
+      <canvas id="pong-canvas" width="800" height="480" style="display:block;margin:0 auto;border:1px solid #111;"></canvas>
+    </div>
+  `;
+  // render canvas view
+app.innerHTML = '';
+const wrapper = document.createElement('div');
+wrapper.className = 'card';
+wrapper.innerHTML = canvasHtml;
+app.appendChild(wrapper);
+
+// instantiate the game, pass players and onGameOver callback
+const GameClass = (window as any).PongGame;
+if (!GameClass) {
+  alert('Le jeu n\'a pas été chargé (Game.js manquant).');
+  return;
+}
+
+// create game and pass callback
+let game = new GameClass('pong-canvas', a, b, 7, (winner: string, loser: string, score: string) => {
+  // render victory screen
+  renderVictory(winner, loser, score, a, b); // pass also original names if needed
+});
+});
 
   return node;
 }
