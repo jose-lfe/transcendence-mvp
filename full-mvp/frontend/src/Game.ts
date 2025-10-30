@@ -117,6 +117,7 @@ class Game {
   private rightPaddle: Paddle;
   private ball: Ball;
   private keys: Record<string, boolean> = {};
+  private running: boolean = true;
   private rafId: number | null = null;
   private keydownHandler: (e: KeyboardEvent) => void;
   private keyupHandler: (e: KeyboardEvent) => void;
@@ -125,7 +126,7 @@ class Game {
   private winningScore: number;
   private onGameOver?: OnGameOver;
 
-  constructor(canvasId: string, leftName = 'Joueur 1', rightName = 'Joueur 2', winningScore = 7, onGameOver?: OnGameOver) {
+  constructor(canvasId: string, leftName = 'Joueur 1', rightName = 'Joueur 2', winningScore = 2, onGameOver?: OnGameOver) {
     this.canvas = document.getElementById(canvasId) as HTMLCanvasElement;
     this.ctx = this.canvas.getContext("2d")!;
     this.leftPaddle = new Paddle(20, this.canvas.height / 2 - 50, 10, 100, "white");
@@ -210,13 +211,16 @@ class Game {
     this.ctx.fillText(`${this.rightPaddle.score}  ${this.rightName}`, this.canvas.width - 20, 30);
   }
 
-  loop = () => {
+loop = () => {
+    if (!this.running) return;
     this.update();
     this.draw();
     this.rafId = requestAnimationFrame(this.loop);
-  };
+};
 
   stop() {
+    this.running = false;
+    
     if (this.rafId) {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
