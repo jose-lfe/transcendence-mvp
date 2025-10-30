@@ -1,0 +1,13 @@
+{
+  "name": "mvp-backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "fastify": "^4.22.0",
+    "@fastify/cors": "^8.2.0",
+    "@fastify/formbody": "^7.0.0"
+  }
+}

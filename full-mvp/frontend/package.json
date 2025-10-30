@@ -1,0 +1,16 @@
+{
+  "name": "frontend-mvp",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:css": "npx tailwindcss -i ./src/index.css -o ./dist/style.css --minify",
+    "build:ts": "npx tsc",
+    "build": "npm run build:css && npm run build:ts"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.24",
+    "tailwindcss": "^3.4.6",
+    "typescript": "^5.3.3"
+  }
+}
